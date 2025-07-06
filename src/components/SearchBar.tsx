@@ -23,7 +23,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (localQuery.trim()) {
-      onSearch(localQuery.trim());
+      onSearch(localQuery.trim() + "+Songs");
     }
   };
 

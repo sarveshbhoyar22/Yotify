@@ -74,7 +74,7 @@ function App() {
         setIsLoadingSuggestions(true);
         try {
           const suggestionResults = await getSearchSuggestions(
-            debouncedQuery,
+            `${debouncedQuery} songs`,
             5
           );
           setSuggestions(suggestionResults);

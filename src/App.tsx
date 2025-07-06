@@ -261,6 +261,7 @@ function App() {
             onPause={handlePause}
             onStop={handleStop}
             onSeek={seekTo}
+            track={currentTrack}
           />
         )}
       </div>

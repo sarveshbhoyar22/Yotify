@@ -1,6 +1,6 @@
 import React from "react";
-import { Play, Pause, Square } from "lucide-react";
-import { PlayerState } from "../types";
+import { Play, Pause, Square, Music } from "lucide-react";
+import { PlayerState, CurrentTrack as CurrentTrackType } from "../types";
 
 interface AudioPlayerProps {
   playerState: PlayerState;
@@ -8,6 +8,7 @@ interface AudioPlayerProps {
   onPause: () => void;
   onStop: () => void;
   onSeek: (time: number) => void;
+  track: CurrentTrackType | null; // NEW PROP
 }
 
 const formatTime = (seconds: number): string => {
@@ -26,6 +27,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   onPause,
   onStop,
   onSeek,
+  track, // NEW PROP
 }) => {
   const { isPlaying, currentTime, duration } = playerState;
 
@@ -33,6 +35,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   return (
     <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900/95 backdrop-blur-md rounded-2xl px-6 py-4 border border-gray-700 shadow-xl z-50 w-[90%] max-w-2xl transition-all duration-300">
+      {/* Song Title */}
+      {track && (
+        <div className="flex items-center text-white mb-3 space-x-2">
+          <Music className="h-5 w-5 text-purple-400" />
+          <span className="text-sm font-medium truncate">{track.title}</span>
+        </div>
+      )}
+
+      {/* Controls */}
       <div className="flex items-center justify-between space-x-6">
         {/* Playback Controls */}
         <div className="flex items-center space-x-3">

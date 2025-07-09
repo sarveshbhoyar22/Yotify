@@ -11,6 +11,8 @@ import { ErrorMessage } from "./components/ErrorMessage";
 import { useYouTubePlayer } from "./hooks/useYouTubePlayer";
 import { useDebounce } from "./hooks/useDebounce";
 import { AIPlaylistPrompt } from "./components/AIPlaylistPrompt";
+import { InstallButton } from "./components/InstallButton";
+
 import {
   searchVideos,
   getSearchSuggestions,
@@ -19,7 +21,6 @@ import {
 } from "./api/youtubeApi";
 import { generatePlaylist } from "./api/geminiClient";
 import { VideoResult, SearchSuggestion } from "./types";
-import Footer from "./components/Footer";
 
 function App() {
   const [query, setQuery] = useState("");
@@ -265,6 +266,7 @@ function App() {
           />
         )}
       </div>
+      <InstallButton />
     </div>
   );
 }

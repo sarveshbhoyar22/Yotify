@@ -59,7 +59,7 @@ function App() {
       } catch (err) {
         console.error("Error loading trending videos:", err);
         setError(
-          "Failed to load trending videos. Please check your API key configuration."
+          "Failed to load trending videos. Please check your internet connection."
         );
       } finally {
         setIsLoadingRecommendations(false);

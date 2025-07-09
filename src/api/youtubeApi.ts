@@ -3,12 +3,23 @@ import { VideoResult, SearchSuggestion, ApiError } from '../types';
 // SECURITY WARNING: Embedding API keys in client-side code is a security risk for production applications.
 // For production use, implement a backend proxy to keep API keys secure.
 // This frontend-only approach is for development/demonstration purposes only.
-const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+const API_KEYS = [import.meta.env.VITE_YOUTUBE_API_KEY2, import.meta.env.VITE_YOUTUBE_API_KEY3, import.meta.env.VITE_YOUTUBE_API_KEY1];
+
+let API_KEY_INDEX = 0;
+
+function getNextApiKey(): string | undefined {
+  const apiKey = API_KEYS[API_KEY_INDEX];
+  API_KEY_INDEX = (API_KEY_INDEX + 1) % API_KEYS.length;
+  return apiKey;
+}
+
+let API_KEY = getNextApiKey();
+if (!API_KEY) {
+  console.warn('YouTube API key not found.');
+}
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
-if (!API_KEY) {
-  console.warn('YouTube API key not found. Please add VITE_YOUTUBE_API_KEY to your .env file.');
-}
+
 
 // Helper function to format duration from ISO 8601 to readable format
 const formatDuration = (duration: string): string => {
@@ -51,7 +62,11 @@ export const searchVideos = async (query: string, maxResults: number = 12): Prom
     );
 
     if (!searchResponse.ok) {
-      throw new Error(`Search API error: ${searchResponse.status}`);
+      API_KEY = getNextApiKey();
+      if (!API_KEY) {
+        throw new Error(`All API keys exhausted. Search API error: ${searchResponse.status}`);
+      }
+      return searchVideos(query, maxResults);
     }
 
     const searchData = await searchResponse.json();
@@ -105,7 +120,14 @@ export const getSearchSuggestions = async (query: string, maxResults: number = 5
     );
 
     if (!response.ok) {
-      throw new Error(`Suggestions API error: ${response.status}`);
+      
+        API_KEY = getNextApiKey();
+        if (!API_KEY) {
+          throw new Error(`All API keys exhausted. Search API error: ${response.status}`);
+        }
+        return getSearchSuggestions(query, maxResults);
+      
+      
     }
 
     const data = await response.json();
@@ -123,7 +145,7 @@ export const getSearchSuggestions = async (query: string, maxResults: number = 5
 };
 
 // Get trending/popular videos
-export const getTrendingVideos = async (maxResults: number = 8): Promise<VideoResult[]> => {
+export const getTrendingVideos = async (maxResults: number = 30): Promise<VideoResult[]> => {
   if (!API_KEY) {
     return [];
   }
@@ -132,8 +154,17 @@ export const getTrendingVideos = async (maxResults: number = 8): Promise<VideoRe
     const response = await fetch(
       `${BASE_URL}/videos?part=snippet,contentDetails,statistics&chart=mostPopular&videoCategoryId=10&maxResults=${maxResults}&key=${API_KEY}`
     );
+    
+    
+    
+    
 
     if (!response.ok) {
+      API_KEY = getNextApiKey();
+        if (!API_KEY) {
+          throw new Error(`All API keys exhausted. Search API error: ${response.status}`);
+        }
+        return getTrendingVideos(maxResults);
       throw new Error(`Trending API error: ${response.status}`);
     }
 

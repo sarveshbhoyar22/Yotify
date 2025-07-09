@@ -21,8 +21,10 @@ import {
 } from "./api/youtubeApi";
 import { generatePlaylist } from "./api/geminiClient";
 import { VideoResult, SearchSuggestion } from "./types";
+import { AudioPlayerPopup } from "./components/AudioPlayerPopup";
 
 function App() {
+  const [showPlayerPopup, setShowPlayerPopup] = useState(false);
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<VideoResult[]>([]);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
@@ -37,6 +39,37 @@ function App() {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const debouncedQuery = useDebounce(query, 400);
+
+  const handleNext = () => {
+    if (!currentTrack || recommendations.length === 0) return;
+    const currentIndex = recommendations.findIndex(
+      (v) => v.id === currentTrack.id
+    );
+    const nextIndex = (currentIndex + 1) % recommendations.length;
+    const nextVideo = recommendations[nextIndex];
+    playVideo(
+      nextVideo.id,
+      nextVideo.title,
+      nextVideo.channel,
+      nextVideo.thumbnail
+    );
+  };
+
+  const handlePrev = () => {
+    if (!currentTrack || recommendations.length === 0) return;
+    const currentIndex = recommendations.findIndex(
+      (v) => v.id === currentTrack.id
+    );
+    const prevIndex =
+      (currentIndex - 1 + recommendations.length) % recommendations.length;
+    const prevVideo = recommendations[prevIndex];
+    playVideo(
+      prevVideo.id,
+      prevVideo.title,
+      prevVideo.channel,
+      prevVideo.thumbnail
+    );
+  };
 
   const {
     playerRef,
@@ -201,7 +234,6 @@ function App() {
             </div>
           </div>
         </header>
-
         <main className="px-4 pb-24">
           <div className="max-w-6xl mx-auto">
             <SearchBar
@@ -249,22 +281,41 @@ function App() {
             />
           </div>
         </main>
-
         <div
           ref={playerRef}
           className="fixed -top-96 -left-96 w-0 h-0 overflow-hidden opacity-0 pointer-events-none"
         />
-
-        {playerState.isReady && (
+        {playerState.isReady && currentTrack && (
           <AudioPlayer
+            mode={showPlayerPopup ? "popup" : "mini"}
             playerState={playerState}
+            track={currentTrack}
             onPlay={handlePlay}
             onPause={handlePause}
             onStop={handleStop}
             onSeek={seekTo}
-            track={currentTrack}
+            onClose={() => setShowPlayerPopup(false)}
+            onExpand={() => setShowPlayerPopup(true)}
+            suggestions={recommendations}
+            onPlaySuggestion={handlePlayAudio}
+            onNext={handleNext} // ✅ NEW
+            onPrev={handlePrev} // ✅ NEW
           />
         )}
+
+        {/* {showPlayerPopup && currentTrack && (
+          <AudioPlayerPopup
+            playerState={playerState}
+            track={currentTrack}
+            onPlay={handlePlay}
+            onPause={handlePause}
+            onStop={handleStop}
+            onSeek={seekTo}
+            onClose={() => setShowPlayerPopup(false)}
+            suggestions={recommendations}
+            onPlaySuggestion={handlePlayAudio}
+          />
+        )} */}
       </div>
       <InstallButton />
     </div>

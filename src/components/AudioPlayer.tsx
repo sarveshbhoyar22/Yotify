@@ -2,12 +2,11 @@ import React from "react";
 import {
   Play,
   Pause,
-  Square,
-  Music,
-  X,
-  Maximize,
   SkipBack,
   SkipForward,
+  X,
+  Maximize,
+  Music,
 } from "lucide-react";
 import {
   PlayerState,
@@ -64,109 +63,129 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     <div
       className={`${
         isPopup
-          ? "fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center px-6 py-10 overflow-auto"
-          : "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900/95 backdrop-blur-md rounded-2xl px-6 py-4 border border-gray-700 shadow-xl z-40 w-[90%] max-w-2xl transition-all duration-300"
+          ? "fixed inset-0 z-50 bg-gradient-to-b from-black to-gray-900 text-white flex flex-col items-center justify-center px-6 py-10"
+          : "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-gray-900/95 backdrop-blur-md rounded-2xl px-6 py-4 border border-gray-700 shadow-xl z-40 w-[90%] max-w-2xl"
       }`}
     >
-      {/* Close Button for popup */}
+      {/* Close Button only for popup */}
       {isPopup && (
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-300 hover:text-white text-2xl"
+          className="absolute top-4 right-4 text-gray-400 hover:text-white"
         >
-          <X />
+          <X className="w-6 h-6" />
         </button>
       )}
 
-      {/* Track Info */}
-      <div
-        className={`flex ${
-          isPopup
-            ? "flex-col items-center gap-4  p-6"
-            : "items-center justify-between mb-4"
-        }`}
-      >
-        <div className="items-center p-2 flex flex-col">
-          {isPopup && (
-            <img
-              src={track.thumbnail}
-              alt={track.title}
-              className="h-40 w-40 rounded-xl shadow-lg"
-            />
-          )}
-          <div className="flex items-center p-2 space-x-2 text-white text-sm font-medium">
-            <Music className="h-5 w-5 text-purple-400" />
-            <span className="truncate relative sm:max-w-full max-w-[200px]">
+      {/* ---- MINI MODE (unchanged) ---- */}
+      {!isPopup && (
+        <div className="flex items-center justify-between">
+          <div
+            className="flex items-center space-x-3 cursor-pointer"
+            onClick={onExpand}
+          >
+            {track.thumbnail ? (
+              <img
+                src={track.thumbnail}
+                alt=""
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <Music className="h-5 w-5 text-purple-400" />
+            )}
+
+            <span className="truncate sm:max-w-[450px] max-w-[200px] text-white text-sm font-medium">
               {track.title}
             </span>
           </div>
-        </div>
-
-        {/* Expand button in mini-mode */}
-        {!isPopup && onExpand && (
-          <button
-            onClick={onExpand}
-            className="ml-auto bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-full text-sm flex items-center space-x-1"
-          >
-            <Maximize className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-
-      <div className="flex flex-col ">
-        {/* Controls */}
-        <div className="flex items-center justify-center sm:space-x-4 sm:w-full max-w-xl py-2">
-          {
-            <button
-              onClick={onPrev}
-              className="bg-gray-700 hover:bg-gray-600 text-white rounded-full p-3 shadow-md m-2"
-            >
-              <SkipBack className="h-5 w-5" />
-            </button>
-          }
 
           <button
             onClick={isPlaying ? onPause : onPlay}
-            className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-4 shadow-md"
+            className="p-2 rounded-full bg-purple-500 hover:bg-purple-600 shadow-md"
           >
             {isPlaying ? (
-              <Pause className="h-5 w-5" />
+              <Pause className="w-4 h-4 text-white" />
             ) : (
-              <Play className="h-5 w-5 ml-0.5" />
+              <Play className="w-4 h-4 text-white ml-0.5" />
             )}
           </button>
-
-          {
-            <button
-              onClick={onNext}
-              className="bg-gray-700 hover:bg-gray-600 m-2 text-white rounded-full p-3 shadow-md"
-            >
-              <SkipForward className="h-5 w-5" />
-            </button>
-          }
         </div>
+      )}
 
-        {/* Seekbar */}
-        <div className="flex items-center space-x-3 w-full max-w-xl px-4">
-          <span className="text-xs text-gray-400 w-10 text-right">
-            {formatTime(currentTime)}
-          </span>
-          <input
-            type="range"
-            min={0}
-            max={duration || 0}
-            value={currentTime}
-            onChange={(e) => onSeek(parseFloat(e.target.value))}
-            className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-            style={{
-              background: `linear-gradient(to right, #9333ea 0%, #9333ea ${progressPercentage}%, #374151 ${progressPercentage}%, #374151 100%)`,
-            }}
-          />
-          <span className="text-xs text-gray-400 w-10">
-            {formatTime(duration)}
-          </span>
+      {/* ---- POPUP UI (modernized) ---- */}
+      {isPopup && (
+        <div className="flex flex-col items-center h-screen justify-center  rounded-lg shadow-2xl p-10 bg-gradient-to-br from-purple-900/30 to-blue-900/30">
+          <div className="flex  flex-col sm:flex-row justify-center items-center sm:items-start w-full gap-6 sm:gap-12 mt-4 sm:mt-0">
+            {/* Album Art */}
+            <div className="w-[260px] h-[260px] border border-white p-2 sm:w-[300px] sm:h-[300px] rounded-2xl overflow-hidden shadow-2xl">
+              <img
+                src={track.thumbnail}
+                alt={track.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Info + Controls */}
+            <div className="flex flex-col items-center sm:items-start w-full max-w-xl">
+              <div className="text-center sm:text-left mb-6">
+                <h1 className="text-2xl sm:text-4xl font-bold">
+                  {track.title}
+                </h1>
+                <p className="text-purple-400 mt-1 text-sm sm:text-base">
+                  {track.artist || "Unknown Artist"}
+                </p>
+              </div>
+
+              {/* Seekbar */}
+              <div className="flex items-center gap-3 w-full">
+                <span className="text-xs text-gray-400 w-10 text-right">
+                  {formatTime(currentTime)}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={duration || 0}
+                  value={currentTime}
+                  onChange={(e) => onSeek(parseFloat(e.target.value))}
+                  className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, #9333ea 0%, #9333ea ${progressPercentage}%, #374151 ${progressPercentage}%, #374151 100%)`,
+                  }}
+                />
+                <span className="text-xs text-gray-400 w-10">
+                  {formatTime(duration)}
+                </span>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center justify-center gap-6 mt-6 w-full">
+                <button
+                  onClick={onPrev}
+                  className="p-3 rounded-full bg-gray-800 hover:bg-gray-700"
+                >
+                  <SkipBack className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={isPlaying ? onPause : onPlay}
+                  className="p-5 rounded-full bg-purple-500 hover:bg-purple-600 shadow-md"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-6 h-6 text-white" />
+                  ) : (
+                    <Play className="w-6 h-6 text-white ml-0.5" />
+                  )}
+                </button>
+                <button
+                  onClick={onNext}
+                  className="p-3 rounded-full bg-gray-800 hover:bg-gray-700"
+                >
+                  <SkipForward className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

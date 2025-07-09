@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Library } from "./components/Library";
-import { Music2, Headphones } from "lucide-react";
+
+import { Headphones } from "lucide-react";
 import { SearchBar } from "./components/SearchBar";
 import { SearchSuggestions } from "./components/SearchSuggestions";
 import { SearchResults } from "./components/SearchResults";
@@ -10,7 +10,7 @@ import { Recommendations } from "./components/Recommendations";
 import { ErrorMessage } from "./components/ErrorMessage";
 import { useYouTubePlayer } from "./hooks/useYouTubePlayer";
 import { useDebounce } from "./hooks/useDebounce";
-import { AIPlaylistPrompt } from "./components/AIPlaylistPrompt";
+
 import { InstallButton } from "./components/InstallButton";
 
 import {
@@ -19,9 +19,33 @@ import {
   getTrendingVideos,
   getRelatedVideos,
 } from "./api/youtubeApi";
-import { generatePlaylist } from "./api/geminiClient";
+
 import { VideoResult, SearchSuggestion } from "./types";
-import { AudioPlayerPopup } from "./components/AudioPlayerPopup";
+
+// 🔁 CACHE UTILITY
+const cache = {
+  set: (key: string, value: any) => {
+    const payload = {
+      data: value,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(key, JSON.stringify(payload));
+  },
+  get: (key: string, expiryInMs = 1000 * 60 * 60 * 24) => {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.timestamp > expiryInMs) {
+        localStorage.removeItem(key);
+        return null;
+      }
+      return parsed.data;
+    } catch {
+      return null;
+    }
+  },
+};
 
 function App() {
   const [showPlayerPopup, setShowPlayerPopup] = useState(false);
@@ -36,9 +60,19 @@ function App() {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const debouncedQuery = useDebounce(query, 400);
+
+  const {
+    playerRef,
+    playerState,
+    currentTrack,
+    playVideo,
+    pauseVideo,
+    resumeVideo,
+    stopVideo,
+    seekTo,
+  } = useYouTubePlayer();
 
   const handleNext = () => {
     if (!currentTrack || recommendations.length === 0) return;
@@ -71,23 +105,13 @@ function App() {
     );
   };
 
-  const {
-    playerRef,
-    playerState,
-    currentTrack,
-    playVideo,
-    pauseVideo,
-    resumeVideo,
-    stopVideo,
-    setVolume,
-    seekTo,
-  } = useYouTubePlayer();
-
   useEffect(() => {
     const loadTrendingVideos = async () => {
       setIsLoadingRecommendations(true);
       try {
-        const trending = await getTrendingVideos(8);
+        const cached = cache.get("trending");
+        const trending = cached || (await getTrendingVideos(8));
+        if (!cached) cache.set("trending", trending);
         setRecommendations(trending);
         setError(null);
       } catch (err) {
@@ -107,11 +131,13 @@ function App() {
       if (debouncedQuery.length >= 2 && showSuggestions) {
         setIsLoadingSuggestions(true);
         try {
-          const suggestionResults = await getSearchSuggestions(
-            `${debouncedQuery} songs`,
-            5
-          );
-          setSuggestions(suggestionResults);
+          const cacheKey = `suggestions_${debouncedQuery}`;
+          const cached = cache.get(cacheKey);
+          const result =
+            cached ||
+            (await getSearchSuggestions(`${debouncedQuery} songs`, 5));
+          if (!cached) cache.set(cacheKey, result);
+          setSuggestions(result);
           setError(null);
         } catch (err) {
           console.error("Error fetching suggestions:", err);
@@ -138,33 +164,26 @@ function App() {
     setShowSuggestions(false);
     setError(null);
     try {
-      const results = await searchVideos(searchQuery, 12);
+      const cacheKey = `search_${searchQuery}`;
+      const cached = cache.get(cacheKey);
+      const results = cached || (await searchVideos(searchQuery, 12));
+      if (!cached) cache.set(cacheKey, results);
       setSearchResults(results);
+
       if (results.length > 0) {
-        const related = await getRelatedVideos(results[0].id, 8);
+        const relatedCacheKey = `related_${results[0].id}`;
+        const relatedCached = cache.get(relatedCacheKey);
+        const related =
+          relatedCached || (await getRelatedVideos(results[0].id, 8));
+        if (!relatedCached) cache.set(relatedCacheKey, related);
         setRecommendations(related);
       }
     } catch (err) {
       console.error("Error searching videos:", err);
-      setError("Sorry Server is busy please try again later");
+      setError("Sorry, the server is busy. Please try again later.");
       setSearchResults([]);
     } finally {
       setIsSearching(false);
-    }
-  };
-
-  const handleGeneratePlaylist = async (prompt: string) => {
-    setIsGeneratingAI(true);
-    try {
-      const results = await generatePlaylist(prompt);
-      setSearchResults(results);
-      setHasSearched(true);
-      setQuery(prompt);
-    } catch (err) {
-      console.error("AI Playlist Error:", err);
-      setError("Failed to generate playlist. Please try again.");
-    } finally {
-      setIsGeneratingAI(false);
     }
   };
 
@@ -196,10 +215,6 @@ function App() {
 
   const handleStop = () => {
     stopVideo();
-  };
-
-  const handleVolumeChange = (volume: number) => {
-    setVolume(volume);
   };
 
   const retryOperation = () => {
@@ -234,6 +249,7 @@ function App() {
             </div>
           </div>
         </header>
+
         <main className="px-4 pb-24">
           <div className="max-w-6xl mx-auto">
             <SearchBar
@@ -242,11 +258,6 @@ function App() {
               isLoading={isSearching}
               query={query}
             />
-
-            {/* <AIPlaylistPrompt
-              onGenerate={handleGeneratePlaylist}
-              loading={isGeneratingAI}
-            /> */}
 
             <SearchSuggestions
               suggestions={suggestions}
@@ -281,10 +292,12 @@ function App() {
             />
           </div>
         </main>
+
         <div
           ref={playerRef}
           className="fixed -top-96 -left-96 w-0 h-0 overflow-hidden opacity-0 pointer-events-none"
         />
+
         {playerState.isReady && currentTrack && (
           <AudioPlayer
             mode={showPlayerPopup ? "popup" : "mini"}
@@ -298,25 +311,12 @@ function App() {
             onExpand={() => setShowPlayerPopup(true)}
             suggestions={recommendations}
             onPlaySuggestion={handlePlayAudio}
-            onNext={handleNext} // ✅ NEW
-            onPrev={handlePrev} // ✅ NEW
+            onNext={handleNext}
+            onPrev={handlePrev}
           />
         )}
-
-        {/* {showPlayerPopup && currentTrack && (
-          <AudioPlayerPopup
-            playerState={playerState}
-            track={currentTrack}
-            onPlay={handlePlay}
-            onPause={handlePause}
-            onStop={handleStop}
-            onSeek={seekTo}
-            onClose={() => setShowPlayerPopup(false)}
-            suggestions={recommendations}
-            onPlaySuggestion={handlePlayAudio}
-          />
-        )} */}
       </div>
+
       <InstallButton />
     </div>
   );

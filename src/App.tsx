@@ -72,7 +72,17 @@ function App() {
     resumeVideo,
     stopVideo,
     seekTo,
+    onVideoEnd,
   } = useYouTubePlayer();
+
+  useEffect(() => {
+    onVideoEnd(() => {
+      if (!currentTrack) return;
+      const index = recommendations.findIndex((v) => v.id === currentTrack.id);
+      const next = recommendations[index + 1];
+      if (next) playVideo(next.id, next.title, next.channel, next.thumbnail);
+    });
+  }, [currentTrack, recommendations]);
 
   const handleNext = () => {
     if (!currentTrack || recommendations.length === 0) return;

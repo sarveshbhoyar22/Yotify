@@ -24,7 +24,10 @@ export const useYouTubePlayer = () => {
 
   const [currentTrack, setCurrentTrack] = useState<CurrentTrackInfo | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isPlayerReady = useRef(false); // prevent multiple setups
+  const isPlayerReady = useRef(false);
+
+  // 🔁 Callback for when video ends
+  const onVideoEndRef = useRef<() => void>();
 
   const loadYouTubeAPI = useCallback(() => {
     if (window.YT && window.YT.Player) return;
@@ -33,14 +36,13 @@ export const useYouTubePlayer = () => {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
       document.body.appendChild(tag);
-      console.log('YouTube IFrame API script tag added.');
     }
   }, []);
 
   const startProgressInterval = useCallback(() => {
     stopProgressInterval();
     intervalRef.current = setInterval(() => {
-      if (playerInstance.current && typeof playerInstance.current.getCurrentTime === 'function') {
+      if (playerInstance.current?.getCurrentTime) {
         setPlayerState(prev => ({
           ...prev,
           currentTime: playerInstance.current.getCurrentTime() || 0,
@@ -48,7 +50,7 @@ export const useYouTubePlayer = () => {
         }));
       }
     }, 1000);
-  }, [playerState.isPlaying]);
+  }, []);
 
   const stopProgressInterval = useCallback(() => {
     if (intervalRef.current) {
@@ -60,7 +62,6 @@ export const useYouTubePlayer = () => {
   const initializePlayer = useCallback(() => {
     if (!playerRef.current || playerInstance.current || !window.YT?.Player || isPlayerReady.current) return;
 
-    console.log('Initializing new YouTube Player instance...');
     isPlayerReady.current = true;
 
     playerInstance.current = new window.YT.Player(playerRef.current, {
@@ -79,23 +80,15 @@ export const useYouTubePlayer = () => {
       },
       events: {
         onReady: () => {
-          console.log('YouTube player ready! (onReady)');
           const player = playerInstance.current;
-
-          if (player && typeof player.setVolume === 'function') {
+          if (player?.setVolume) {
             player.setVolume(playerState.volume);
             const currentVolume = player.getVolume?.() ?? playerState.volume;
-
-            setPlayerState(prev => ({
-              ...prev,
-              isReady: true,
-              volume: currentVolume,
-            }));
+            setPlayerState(prev => ({ ...prev, isReady: true, volume: currentVolume }));
           }
         },
         onStateChange: (event: any) => {
           const state = event.data;
-          console.log('Player state changed to:', state);
           setPlayerState(prev => {
             const newState = { ...prev };
             switch (state) {
@@ -117,7 +110,8 @@ export const useYouTubePlayer = () => {
                 newState.isStopped = true;
                 newState.currentTime = 0;
                 stopProgressInterval();
-                setCurrentTrack(null);
+                // ⏭️ Trigger onVideoEnd callback if defined
+                if (onVideoEndRef.current) onVideoEndRef.current();
                 break;
               case window.YT.PlayerState.BUFFERING:
                 newState.isPlaying = false;
@@ -146,13 +140,12 @@ export const useYouTubePlayer = () => {
         },
       },
     });
-  }, [playerRef, playerState.volume]);
+  }, [playerRef, playerState.volume, stopProgressInterval, startProgressInterval]);
 
   useEffect(() => {
     loadYouTubeAPI();
 
     window.onYouTubeIframeAPIReady = () => {
-      console.log('YouTube IFrame API is ready.');
       initializePlayer();
     };
 
@@ -169,9 +162,7 @@ export const useYouTubePlayer = () => {
       if (playerInstance.current) {
         playerInstance.current.destroy();
         playerInstance.current = null;
-        console.log('YouTube Player destroyed on unmount.');
       }
-
       stopProgressInterval();
 
       if (window.onYouTubeIframeAPIReady === initializePlayer) {
@@ -181,7 +172,6 @@ export const useYouTubePlayer = () => {
       const script = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
       if (script) {
         script.remove();
-        console.log('YouTube IFrame API script tag removed.');
       }
 
       isPlayerReady.current = false;
@@ -211,12 +201,11 @@ export const useYouTubePlayer = () => {
   }, [playerState.isPaused]);
 
   const seekTo = useCallback((time: number) => {
-    if (playerInstance.current && typeof playerInstance.current.seekTo === "function") {
+    if (playerInstance.current?.seekTo) {
       playerInstance.current.seekTo(time, true);
       setPlayerState(prev => ({ ...prev, currentTime: time }));
     }
   }, []);
-  
 
   const stopVideo = useCallback(() => {
     if (playerInstance.current && !playerState.isStopped) {
@@ -224,7 +213,7 @@ export const useYouTubePlayer = () => {
       stopProgressInterval();
       setPlayerState(prev => ({
         ...prev,
-        isPlaying: false, 
+        isPlaying: false,
         isPaused: false,
         isStopped: true,
         currentTime: 0,
@@ -237,16 +226,18 @@ export const useYouTubePlayer = () => {
     const clamped = Math.max(0, Math.min(100, volume));
     setPlayerState(prev => ({ ...prev, volume: clamped }));
 
-    if (playerInstance.current && typeof playerInstance.current.setVolume === 'function') {
+    if (playerInstance.current?.setVolume) {
       try {
         playerInstance.current.setVolume(clamped);
-        console.log('Volume set to:', clamped);
       } catch (err) {
         console.warn('Error setting volume:', err);
       }
-    } else {
-      console.warn('setVolume not available yet.');
     }
+  }, []);
+
+  // 🔁 Public API to register end handler
+  const onVideoEnd = useCallback((cb: () => void) => {
+    onVideoEndRef.current = cb;
   }, []);
 
   return {
@@ -258,6 +249,7 @@ export const useYouTubePlayer = () => {
     resumeVideo,
     stopVideo,
     setVolume,
-    seekTo
+    seekTo,
+    onVideoEnd, // expose callback
   };
 };

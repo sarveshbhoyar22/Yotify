@@ -132,7 +132,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   {track.title}
                 </h1>
                 <p className="text-purple-400 mt-1 text-sm sm:text-base">
-                  {track.artist || "Unknown Artist"}
+                  {track.channel || "Unknown Artist"}
                 </p>
               </div>
 

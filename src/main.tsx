@@ -5,6 +5,7 @@ import "./index.css";
 import { registerSW } from "virtual:pwa-register";
 registerSW({ immediate: true });
 
+// document.addEventListener("contextmenu", (event) => event.preventDefault());
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <App />

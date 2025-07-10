@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-
 import { Headphones } from "lucide-react";
+
 import { SearchBar } from "./components/SearchBar";
 import { SearchSuggestions } from "./components/SearchSuggestions";
 import { SearchResults } from "./components/SearchResults";
@@ -8,10 +8,10 @@ import { AudioPlayer } from "./components/AudioPlayer";
 import { CurrentTrack } from "./components/CurrentTrack";
 import { Recommendations } from "./components/Recommendations";
 import { ErrorMessage } from "./components/ErrorMessage";
+import { InstallButton } from "./components/InstallButton";
+
 import { useYouTubePlayer } from "./hooks/useYouTubePlayer";
 import { useDebounce } from "./hooks/useDebounce";
-
-import { InstallButton } from "./components/InstallButton";
 
 import {
   searchVideos,
@@ -21,31 +21,8 @@ import {
 } from "./api/youtubeApi";
 
 import { VideoResult, SearchSuggestion } from "./types";
-
-// 🔁 CACHE UTILITY
-const cache = {
-  set: (key: string, value: any) => {
-    const payload = {
-      data: value,
-      timestamp: Date.now(),
-    };
-    localStorage.setItem(key, JSON.stringify(payload));
-  },
-  get: (key: string, expiryInMs = 1000 * 60 * 60 * 24) => {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    try {
-      const parsed = JSON.parse(raw);
-      if (Date.now() - parsed.timestamp > expiryInMs) {
-        localStorage.removeItem(key);
-        return null;
-      }
-      return parsed.data;
-    } catch {
-      return null;
-    }
-  },
-};
+import { db } from "./firebase";
+import { initCache, getCache, setCache, hasCache } from "./utils/cache";
 
 function App() {
   const [showPlayerPopup, setShowPlayerPopup] = useState(false);
@@ -75,12 +52,19 @@ function App() {
     onVideoEnd,
   } = useYouTubePlayer();
 
+  // 🌐 Init Firebase cache on first load
+  useEffect(() => {
+    initCache(db);
+  }, []);
+
   useEffect(() => {
     onVideoEnd(() => {
       if (!currentTrack) return;
       const index = recommendations.findIndex((v) => v.id === currentTrack.id);
       const next = recommendations[index + 1];
-      if (next) playVideo(next.id, next.title, next.channel, next.thumbnail);
+      if (next) {
+        playVideo(next.id, next.title, next.channel, next.thumbnail);
+      }
     });
   }, [currentTrack, recommendations]);
 
@@ -119,9 +103,10 @@ function App() {
     const loadTrendingVideos = async () => {
       setIsLoadingRecommendations(true);
       try {
-        const cached = cache.get("trending");
+        const cacheKey = "trending";
+        const cached = await getCache(cacheKey);
         const trending = cached || (await getTrendingVideos(8));
-        if (!cached) cache.set("trending", trending);
+        if (!cached) setCache(cacheKey, trending);
         setRecommendations(trending);
         setError(null);
       } catch (err) {
@@ -142,11 +127,11 @@ function App() {
         setIsLoadingSuggestions(true);
         try {
           const cacheKey = `suggestions_${debouncedQuery}`;
-          const cached = cache.get(cacheKey);
+          const cached = await getCache(cacheKey);
           const result =
             cached ||
             (await getSearchSuggestions(`${debouncedQuery} songs`, 5));
-          if (!cached) cache.set(cacheKey, result);
+          if (!cached) setCache(cacheKey, result);
           setSuggestions(result);
           setError(null);
         } catch (err) {
@@ -174,18 +159,18 @@ function App() {
     setShowSuggestions(false);
     setError(null);
     try {
-      const cacheKey = `search_${searchQuery}`;
-      const cached = cache.get(cacheKey);
+      const searchKey = `search_${searchQuery}`;
+      const cached = await getCache(searchKey);
       const results = cached || (await searchVideos(searchQuery, 12));
-      if (!cached) cache.set(cacheKey, results);
+      if (!cached) setCache(searchKey, results);
       setSearchResults(results);
 
       if (results.length > 0) {
-        const relatedCacheKey = `related_${results[0].id}`;
-        const relatedCached = cache.get(relatedCacheKey);
+        const relatedKey = `related_${results[0].id}`;
+        const relatedCached = await getCache(relatedKey);
         const related =
           relatedCached || (await getRelatedVideos(results[0].id, 8));
-        if (!relatedCached) cache.set(relatedCacheKey, related);
+        if (!relatedCached) setCache(relatedKey, related);
         setRecommendations(related);
       }
     } catch (err) {
@@ -236,14 +221,19 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%239C92AC%22 fill-opacity=%220.03%22%3E%3Cpath d=%22m36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-20"></div>
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,...')] opacity-20"></div>
       <div className="relative z-10">
         <header className="pt-8 pb-6 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-center mb-2">
               <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-full p-3 shadow-lg">
-                  <img src="/icon.svg" alt="" className="h-10 w-10" />
+                <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-full p-3 shadow-lg select-none">
+                  <img
+                    src="/icon.svg"
+                    alt=""
+                    className="h-10 w-10"
+                    draggable="false"
+                  />
                 </div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
                   Yotify
@@ -326,7 +316,6 @@ function App() {
           />
         )}
       </div>
-
       <InstallButton />
     </div>
   );

@@ -44,7 +44,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   playerState,
   onPlay,
   onPause,
-  onStop,
   onSeek,
   track,
   mode,

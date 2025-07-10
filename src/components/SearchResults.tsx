@@ -57,11 +57,15 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   }
 
   // Sort results by views descending for relevance (can be changed to duration or date)
-  const sortedResults = [...results].sort(
-    (a, b) =>
-      parseInt(b.views.replace(/[^0-9]/g, "")) -
-      parseInt(a.views.replace(/[^0-9]/g, ""))
-  );
+  const sortedResults = Array.isArray(results)
+    ? [...results]
+        .filter((v) => typeof v?.views === "string") // only keep valid ones
+        .sort((a, b) => {
+          const viewsA = a.views.replace(/[^0-9]/g, "");
+          const viewsB = b.views.replace(/[^0-9]/g, "");
+          return parseInt(viewsB) - parseInt(viewsA);
+        })
+    : [];
 
   return (
     <div className="mb-8">

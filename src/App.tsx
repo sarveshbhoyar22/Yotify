@@ -22,7 +22,13 @@ import {
 
 import { VideoResult, SearchSuggestion } from "./types";
 import { db } from "./firebase";
-import { initCache, getCache, setCache, hasCache } from "./utils/cache";
+import {
+  initCache,
+  getCache,
+  setCache,
+  fetchFromCache,
+  preloadFirestoreCache,
+} from "./utils/cache";
 
 function App() {
   const [showPlayerPopup, setShowPlayerPopup] = useState(false);
@@ -53,8 +59,10 @@ function App() {
   } = useYouTubePlayer();
 
   // 🌐 Init Firebase cache on first load
+
   useEffect(() => {
     initCache(db);
+    preloadFirestoreCache(); // preload all data once
   }, []);
 
   useEffect(() => {
@@ -104,8 +112,11 @@ function App() {
       setIsLoadingRecommendations(true);
       try {
         const cacheKey = "trending";
-        const cached = await getCache(cacheKey);
-        const trending = cached || (await getTrendingVideos(8));
+        const cached = await fetchFromCache(cacheKey);
+        const trendingRaw = cached || (await getTrendingVideos(8));
+        const trending = Array.isArray(trendingRaw)
+          ? trendingRaw
+          : Object.values(trendingRaw || {});
         if (!cached) setCache(cacheKey, trending);
         setRecommendations(trending);
         setError(null);
@@ -127,10 +138,14 @@ function App() {
         setIsLoadingSuggestions(true);
         try {
           const cacheKey = `suggestions_${debouncedQuery}`;
-          const cached = await getCache(cacheKey);
-          const result =
+          const cached = await fetchFromCache(cacheKey);
+          const resultRaw =
             cached ||
-            (await getSearchSuggestions(`${debouncedQuery} songs`, 5));
+            (await getSearchSuggestions(`${debouncedQuery} songs`, 7));
+          const result = Array.isArray(resultRaw)
+            ? resultRaw
+            : Object.values(resultRaw || {});
+
           if (!cached) setCache(cacheKey, result);
           setSuggestions(result);
           setError(null);
@@ -160,16 +175,23 @@ function App() {
     setError(null);
     try {
       const searchKey = `search_${searchQuery}`;
-      const cached = await getCache(searchKey);
+      const cached = await fetchFromCache(searchKey);
       const results = cached || (await searchVideos(searchQuery, 12));
       if (!cached) setCache(searchKey, results);
-      setSearchResults(results);
 
-      if (results.length > 0) {
+      const safeResults = Array.isArray(results)
+        ? results
+        : Object.values(results || {});
+      setSearchResults(safeResults);
+
+      if (safeResults.length > 0) {
         const relatedKey = `related_${results[0].id}`;
-        const relatedCached = await getCache(relatedKey);
-        const related =
+        const relatedCached = await fetchFromCache(relatedKey);
+        const relatedRaw =
           relatedCached || (await getRelatedVideos(results[0].id, 8));
+        const related = Array.isArray(relatedRaw)
+          ? relatedRaw
+          : Object.values(relatedRaw || {});
         if (!relatedCached) setCache(relatedKey, related);
         setRecommendations(related);
       }

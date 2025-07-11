@@ -78,7 +78,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               }}
               className="p-2 rounded-full hover:bg-gray-700/50 transition duration-200"
             >
-              <Mic className="h-5 w-5 text-gray-400 hover:text-white" />
+              {/* <Mic className="h-5 w-5 text-gray-400 hover:text-white" /> */}
             </button>
 
             {/* Desktop submit */}

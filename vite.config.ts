@@ -14,7 +14,7 @@ export default defineConfig({
         start_url: '/',
         display: 'standalone',
         background_color: '#000000',
-        theme_color: '#1f1f1f',
+        theme_color: '#000000',
         icons: [
           {
             src: '/icon.png',

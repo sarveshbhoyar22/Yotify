@@ -21,12 +21,6 @@ const ScrollToTop = () => {
   return null;
 };
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js").catch((err) => {
-    console.error("SW registration failed:", err);
-  });
-}
-
 // Use the ScrollToTop component in your app
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

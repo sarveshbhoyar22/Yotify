@@ -158,7 +158,7 @@ export const Home = () => {
                 Stream Without Limits
               </h2>
               <p className="text-base sm:text-lg lg:text-xl text-slate-400 mb-6 sm:mb-8 max-w-xl lg:max-w-2xl mx-auto leading-relaxed px-4">
-                Experience high-quality YouTube audio streaming with zero
+                Experience high-quality Yt audio streaming with zero
                 advertisements. Discover music across languages and industries
                 with our premium platform.
               </p>
@@ -297,7 +297,7 @@ export const Home = () => {
                   </div>
                   <div className="text-center">
                     <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-400 mb-2">
-                      320kbps
+                      Best
                     </div>
                     <div className="text-slate-400 text-sm sm:text-base">
                       Audio Quality

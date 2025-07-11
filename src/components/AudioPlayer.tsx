@@ -77,46 +77,96 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       )}
 
       {/* ---- MINI MODE (unchanged) ---- */}
+      {/* MINI MODE - Enhanced */}
       {!isPopup && (
-        <div className="flex items-center justify-between">
-          <div
-            className="flex items-center space-x-3 cursor-pointer"
-            onClick={onExpand}
-          >
-            {track.thumbnail ? (
-              <img
-                src={track.thumbnail}
-                alt=""
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <Music className="h-5 w-5 text-purple-400" />
-            )}
-
-            <span className="truncate sm:max-w-[450px] max-w-[200px] text-white text-sm font-medium">
-              {track.title}
-            </span>
+        <div className="p-3 sm:p-4">
+          {/* Progress Bar at Top */}
+          <div className="w-full h-1 bg-slate-700 rounded-full mb-3 sm:mb-4 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${progressPercentage}%` }}
+            />
           </div>
 
-          <button
-            onClick={isPlaying ? onPause : onPlay}
-            className="p-2 rounded-full bg-purple-500 hover:bg-purple-600 shadow-md"
-          >
-            {isPlaying ? (
-              <Pause className="w-4 h-4 text-white" />
-            ) : (
-              <Play className="w-4 h-4 text-white ml-0.5" />
-            )}
-          </button>
+          <div className="flex items-center justify-between">
+            {/* Track Info */}
+            <div
+              className="flex items-center space-x-3 sm:space-x-4 cursor-pointer flex-1 min-w-0"
+              onClick={onExpand}
+            >
+              <div className="relative flex-shrink-0">
+                {track.thumbnail ? (
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl overflow-hidden shadow-lg">
+                    <img
+                      src={track.thumbnail}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
+                    <Music className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
+                  </div>
+                )}
+                {/* Playing Indicator */}
+                {isPlaying && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-slate-800 animate-pulse" />
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-white text-sm sm:text-base font-semibold leading-tight">
+                  {track.title}
+                </h3>
+                <p className="truncate text-slate-400 text-xs sm:text-sm mt-0.5">
+                  {track.channel || "Unknown Artist"}
+                </p>
+              </div>
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+              <button
+                onClick={onPrev}
+                className="p-2 sm:p-2.5 rounded-full bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-all duration-300 hover:scale-105"
+              >
+                <SkipBack className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+
+              <button
+                onClick={isPlaying ? onPause : onPlay}
+                className="p-3 sm:p-4 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 shadow-lg hover:shadow-purple-500/25 transition-all duration-300 hover:scale-105"
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                ) : (
+                  <Play className="w-5 h-5 sm:w-6 sm:h-6 text-white ml-0.5" />
+                )}
+              </button>
+
+              <button
+                onClick={onNext}
+                className="p-2 sm:p-2.5 rounded-full bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white transition-all duration-300 hover:scale-105"
+              >
+                <SkipForward className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* ---- POPUP UI (modernized) ---- */}
       {isPopup && (
-        <div className="flex flex-col items-center h-screen justify-center  rounded-lg shadow-2xl p-10 bg-gradient-to-br from-purple-900/30 to-blue-900/30">
-          <div className="flex  flex-col sm:flex-row justify-center items-center sm:items-start w-full gap-6 sm:gap-12 mt-4 sm:mt-0">
+        <div className="flex flex-col items-center rounded-xl justify-center h-screen bg-gradient-to-br from-purple-900 via-indigo-900 to-black p-6 sm:p-10 text-white relative overflow-hidden">
+          {/* Background Blurred Art */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-10 blur-3xl scale-105 z-0"
+            style={{ backgroundImage: `url(${track.thumbnail})` }}
+          ></div>
+
+          <div className="relative z-10 flex flex-col sm:flex-row items-center gap-8 w-full max-w-6xl">
             {/* Album Art */}
-            <div className="w-[260px] h-[260px] border border-white p-2 sm:w-[300px] sm:h-[300px] rounded-2xl overflow-hidden shadow-2xl">
+            <div className="w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] rounded-2xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-4 border-white/10">
               <img
                 src={track.thumbnail}
                 alt={track.title}
@@ -124,49 +174,50 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               />
             </div>
 
-            {/* Info + Controls */}
+            {/* Info & Controls */}
             <div className="flex flex-col items-center sm:items-start w-full max-w-xl">
-              <div className="text-center sm:text-left mb-6">
-                <h1 className="text-2xl sm:text-4xl font-bold">
+              {/* Track Info */}
+              <div className="text-center sm:text-left mb-4 sm:mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold line-clamp-2">
                   {track.title}
                 </h1>
-                <p className="text-purple-400 mt-1 text-sm sm:text-base">
+                <p className="text-purple-300 mt-1 text-sm sm:text-base">
                   {track.channel || "Unknown Artist"}
                 </p>
               </div>
 
               {/* Seekbar */}
-              <div className="flex items-center gap-3 w-full">
-                <span className="text-xs text-gray-400 w-10 text-right">
-                  {formatTime(currentTime)}
-                </span>
-                <input
-                  type="range"
-                  min={0}
-                  max={duration || 0}
-                  value={currentTime}
-                  onChange={(e) => onSeek(parseFloat(e.target.value))}
-                  className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, #9333ea 0%, #9333ea ${progressPercentage}%, #374151 ${progressPercentage}%, #374151 100%)`,
-                  }}
-                />
-                <span className="text-xs text-gray-400 w-10">
-                  {formatTime(duration)}
-                </span>
+              <div className="w-full mb-4">
+                <div className="flex items-center gap-3 text-sm text-gray-300">
+                  <span className="w-10 text-right">
+                    {formatTime(currentTime)}
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={duration || 0}
+                    value={currentTime}
+                    onChange={(e) => onSeek(parseFloat(e.target.value))}
+                    className="w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                    style={{
+                      background: `linear-gradient(to right, #a855f7 ${progressPercentage}%, #4b5563 ${progressPercentage}%)`,
+                    }}
+                  />
+                  <span className="w-10">{formatTime(duration)}</span>
+                </div>
               </div>
 
               {/* Controls */}
-              <div className="flex items-center justify-center gap-6 mt-6 w-full">
+              <div className="flex items-center justify-center gap-6 mt-2 w-full">
                 <button
                   onClick={onPrev}
-                  className="p-3 rounded-full bg-gray-800 hover:bg-gray-700"
+                  className="p-3 rounded-full bg-gray-800 hover:bg-gray-700 transition"
                 >
                   <SkipBack className="w-5 h-5" />
                 </button>
                 <button
                   onClick={isPlaying ? onPause : onPlay}
-                  className="p-5 rounded-full bg-purple-500 hover:bg-purple-600 shadow-md"
+                  className="p-5 rounded-full bg-purple-600 hover:bg-purple-700 transition shadow-xl"
                 >
                   {isPlaying ? (
                     <Pause className="w-6 h-6 text-white" />
@@ -176,7 +227,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 </button>
                 <button
                   onClick={onNext}
-                  className="p-3 rounded-full bg-gray-800 hover:bg-gray-700"
+                  className="p-3 rounded-full bg-gray-800 hover:bg-gray-700 transition"
                 >
                   <SkipForward className="w-5 h-5" />
                 </button>

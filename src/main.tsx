@@ -1,13 +1,40 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
 import "./index.css";
-import { registerSW } from "virtual:pwa-register";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Home } from "./pages/Home.tsx";
+import { PlayerProvider } from "./context/PlayerProvider.tsx";
+import Footer from "./components/Footer.tsx";
+import SearchPage from "./SearchPage.tsx";
 registerSW({ immediate: true });
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { registerSW } from "virtual:pwa-register";
 
-// document.addEventListener("contextmenu", (event) => event.preventDefault());
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
+// Use the ScrollToTop component in your app
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <PlayerProvider>
+        <ScrollToTop />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/search" element={<SearchPage />} />
+        </Routes>
+        <Footer />
+      </PlayerProvider>
+    </BrowserRouter>
   </StrictMode>
 );
+
+// document.addEventListener("contextmenu", (event) => event.preventDefault());

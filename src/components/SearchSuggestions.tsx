@@ -1,6 +1,6 @@
-import React from 'react';
-import { Play, Clock } from 'lucide-react';
-import { SearchSuggestion } from '../types';
+import React from "react";
+import { Play, Clock } from "lucide-react";
+import { SearchSuggestion } from "../types";
 
 interface SearchSuggestionsProps {
   suggestions: SearchSuggestion[];
@@ -49,14 +49,16 @@ export const SearchSuggestions: React.FC<SearchSuggestionsProps> = ({
                     </button>
                   </div>
                 </div>
-                
+
                 <div className="flex-1 min-w-0">
                   <h4 className="text-white text-sm font-medium line-clamp-2 group-hover:text-purple-300 transition-colors duration-200">
                     {suggestion.title}
                   </h4>
-                  <p className="text-gray-400 text-xs truncate mt-1">{suggestion.channel}</p>
+                  <p className="text-gray-400 text-xs truncate mt-1">
+                    {suggestion.channel}
+                  </p>
                 </div>
-                
+
                 <button
                   onClick={() => onPlayAudio(suggestion)}
                   className="flex-shrink-0 bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 hover:text-white px-3 py-1.5 rounded-lg transition-all duration-200 text-xs font-medium border border-purple-500/30 hover:border-purple-500/50"

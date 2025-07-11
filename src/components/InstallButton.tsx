@@ -33,7 +33,7 @@ export const InstallButton = () => {
   if (!isVisible) return null;
 
   return (
-    <div className="fixed top-4  transform -translate-x-1/2 animate-bounce bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-2 rounded-full shadow-md z-50">
+    <div className="fixed top-4 sm:left-[500px] left-[200px] transform animate-bounce bg-gradient-to-r from-purple-600 to-blue-600 text-white px-2 py-2 rounded-full shadow-md z-50">
       <button
         onClick={handleInstallClick}
         className=" flex text-sm sm:text-base sm:font-semibold justify-center items-center gap-2 "

@@ -3,11 +3,20 @@ import { Heart } from "lucide-react";
 
 const Footer: React.FC = () => {
   return (
-    <footer className="mt-12 px-6 py-6 border-t border-gray-700 bg-gray-900 text-center text-sm text-gray-400">
-      <div className="flex items-center justify-center gap-2">
-        <span>Made with</span>
-        <Heart className="text-red-500 fill-red-500 h-4 w-4" />
-        <span>by Sarvesh Bhoyar</span>
+    <footer className="bg-black ">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="text-center text-slate-500">
+          <p className="text-sm sm:text-base">
+            Crafted with passion by{" "}
+            <span className="text-purple-400 font-semibold">
+              Sarvesh Bhoyar
+            </span>
+          </p>
+          <p className="text-xs sm:text-sm mt-2">
+            Experience music like never before — Premium streaming, zero
+            interruptions
+          </p>
+        </div>
       </div>
     </footer>
   );

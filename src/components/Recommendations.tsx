@@ -68,31 +68,34 @@ export const Recommendations: React.FC<RecommendationsProps> = ({
           >
             <div className="flex-shrink-0 w-32 h-20 overflow-hidden rounded-md mr-4">
               <img
-                src={video.thumbnail}
-                alt={video.title}
+                src={video.thumbnail || "/fallback.jpg"}
+                alt={video.title || "Thumbnail"}
                 className="w-full h-full object-cover rounded-md group-hover:scale-105 transition-transform duration-300"
               />
             </div>
 
             <div className="flex-1 overflow-hidden">
               <h3 className="text-white font-medium line-clamp-2 group-hover:text-purple-300 transition-colors duration-200">
-                {video.title}
+                {video.title || "Untitled Video"}
               </h3>
-              <p className="text-gray-400 text-sm truncate">{video.channel}</p>
+              <p className="text-gray-400 text-sm truncate">
+                {video.channel || "Unknown Channel"}
+              </p>
               <div className="flex items-center text-xs text-gray-500 space-x-4 mt-1">
                 <span className="flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
-                  {video.duration}
+                  {video.duration || "0:00"}
                 </span>
                 <span className="flex items-center">
                   <Eye className="h-3 w-3 mr-1" />
-                  {video.views}
+                  {video.views || "0"}
                 </span>
               </div>
             </div>
 
             <button
               onClick={() => onPlayAudio(video)}
+              aria-label={`Play ${video.title}`}
               className="ml-4 bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 shadow-md hover:shadow-xl transition duration-200 hover:scale-105"
             >
               <Play className="h-5 w-5 ml-0.5" />

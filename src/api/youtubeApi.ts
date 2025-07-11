@@ -50,7 +50,7 @@ const formatViewCount = (viewCount: string): string => {
 };
 
 // Search for videos with full details
-export const searchVideos = async (query: string, maxResults: number = 12): Promise<VideoResult[]> => {
+export const searchVideos = async (query: string, maxResults: number = 20): Promise<VideoResult[]> => {
   if (!API_KEY) {
     throw new Error('YouTube API key not configured');
   }

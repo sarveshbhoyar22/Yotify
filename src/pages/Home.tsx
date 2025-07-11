@@ -154,7 +154,7 @@ export const Home = () => {
 
             {/* Hero Section */}
             <div className="text-center py-6 sm:py-8 lg:py-12">
-              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-gradient-to-r from-white via-slate-200 to-slate-300 bg-clip-text text-transparent leading-tight">
+              <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold mb-3 sm:mb-4 lg:mb-6 bg-gradient-to-r from-white via-slate-200 to-slate-300 bg-clip-text text-transparent leading-tight duration-3000 ease-in-out">
                 Stream Without Limits
               </h2>
               <p className="text-base sm:text-lg lg:text-xl text-slate-400 mb-6 sm:mb-8 max-w-xl lg:max-w-2xl mx-auto leading-relaxed px-4">

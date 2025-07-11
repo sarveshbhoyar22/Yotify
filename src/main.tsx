@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./index.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Home } from "./pages/Home.tsx";
-import { PlayerProvider } from "./context/PlayerProvider.tsx";
+
 import Footer from "./components/Footer.tsx";
 import SearchPage from "./SearchPage.tsx";
 registerSW({ immediate: true });
@@ -25,14 +25,13 @@ const ScrollToTop = () => {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <PlayerProvider>
-        <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/search" element={<SearchPage />} />
-        </Routes>
-        <Footer />
-      </PlayerProvider>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/search" element={<SearchPage />} />
+      </Routes>
+
+      <Footer />
     </BrowserRouter>
   </StrictMode>
 );

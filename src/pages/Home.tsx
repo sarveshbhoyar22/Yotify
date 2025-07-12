@@ -60,37 +60,37 @@ const languages = [
 const industries = [
   {
     name: "Bollywood",
-    query: "Bollywood songs",
+    query: "New Bollywood songs",
     icon: Music,
     color: "from-pink-500 to-rose-500",
   },
   {
     name: "Hollywood",
-    query: "Hollywood songs",
+    query: "New Hollywood songs",
     icon: Film,
     color: "from-blue-500 to-indigo-500",
   },
   {
     name: "Tollywood",
-    query: "Tollywood songs",
+    query: "New Tollywood songs ",
     icon: Play,
     color: "from-yellow-500 to-orange-500",
   },
   {
     name: "Kollywood",
-    query: "Kollywood songs",
+    query: "New Kollywood songs",
     icon: Music,
     color: "from-green-500 to-emerald-500",
   },
   {
     name: "Nollywood",
-    query: "Nollywood songs",
+    query: "New Nollywood songs",
     icon: Film,
     color: "from-purple-500 to-violet-500",
   },
   {
     name: "K-Pop",
-    query: "K-pop songs",
+    query: "New K-pop songs  ",
     icon: Globe,
     color: "from-cyan-500 to-blue-500",
   },
@@ -204,8 +204,8 @@ export const Home = () => {
                 {languages.map((lang) => (
                   <button
                     key={lang.value}
-                    onClick={() => handleClick(`${lang.name} songs`)}
-                    style={{ fontFamily: lang.font }}
+                    onClick={() => handleClick(`New ${lang.name} songs`)}
+                    // style={{ fontFamily: lang.font }}
                     className="group relative overflow-hidden p-4 sm:p-5 lg:p-6 rounded-xl sm:rounded-2xl bg-slate-800/50 backdrop-blur-sm border border-slate-700 hover:border-slate-600 transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-95"
                   >
                     <div
